@@ -18,7 +18,8 @@ export async function resetDb() {
 }
 
 export function uniqueEmail(tag: string) {
-  return `qa+${tag}-${Date.now()}-${Math.floor(Math.random() * 1e4)}@example.com`;
+  // Square deactivates subscriptions for customers with undeliverable emails (e.g. @example.com), so use a real domain.
+  return `marlowe.finch.demo+${tag}-${Date.now()}-${Math.floor(Math.random() * 1e4)}@gmail.com`;
 }
 
 export async function closeDb() {

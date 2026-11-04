@@ -167,7 +167,7 @@ test("admin: password-protected dashboard lists requests, members, payments, not
   await page.getByLabel("Password").fill("wrong");
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByText("Incorrect password.")).toBeVisible();
-  await page.getByLabel("Password").fill("demo-admin");
+  await page.getByLabel("Password").fill(process.env.E2E_ADMIN_PASSWORD ?? "demo-admin");
   await page.getByRole("button", { name: "Sign in" }).click();
   await expect(page.getByRole("heading", { name: "Today at the atelier" })).toBeVisible();
   await expect(page.getByTestId("admin-requests").locator("li").first()).toBeVisible();

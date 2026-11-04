@@ -2,7 +2,7 @@ import { test as base, expect, type Page } from "@playwright/test";
 
 /** Every test fails if the page logs a console error or throws. */
 export const test = base.extend<{ errors: string[] }>({
-  errors: async ({ page }, use) => {
+  errors: async ({ page }, provide) => {
     const errors: string[] = [];
     page.on("console", (m) => {
       if (m.type() !== "error") return;
@@ -12,7 +12,7 @@ export const test = base.extend<{ errors: string[] }>({
       errors.push(`console: ${m.text()} @ ${m.location().url}`);
     });
     page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
-    await use(errors);
+    await provide(errors);
     expect(errors, "console errors").toEqual([]);
   },
 });
@@ -44,5 +44,6 @@ export async function fillSquareCard(page: Page, card = "4111 1111 1111 1111") {
 }
 
 export function email(tag: string, project: string) {
-  return `e2e+${tag}-${project}-${Date.now()}@example.com`;
+  // Real domain: Square deactivates subscriptions whose customer email is undeliverable (@example.com).
+  return `marlowe.finch.demo+${tag}-${project}-${Date.now()}@gmail.com`;
 }

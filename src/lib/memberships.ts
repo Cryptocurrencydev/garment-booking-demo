@@ -242,4 +242,13 @@ async function onSubscriptionUpdated(sub: SqSubscription | undefined) {
      where square_subscription_id = $1`,
     [sub.id, status, sub.charged_through_date ?? null, sub.canceled_date ?? null, sub.card_id ?? null],
   );
+  if (sub.status === "DEACTIVATED") {
+    const m = await one<{ id: string; name: string; email: string }>(
+      "select m.id, c.name, c.email from memberships m join customers c on c.id = m.customer_id where m.square_subscription_id = $1",
+      [sub.id],
+    );
+    if (m) {
+      await sendEmail({ audience: "owner", to: ownerEmail(), subject: `Square deactivated a membership: ${m.name}`, text: `Square marked subscription ${sub.id} (${m.name}, ${m.email}) as non-billable — usually an invalid customer email or a removed profile. Fix it in the Square Dashboard and resume the subscription.`, html: emailHtml("Membership deactivated by Square", [["Member", `${m.name} · ${m.email}`], ["Subscription", sub.id]], "Square marked this subscription non-billable (usually an invalid customer email or a deleted profile). Fix the customer in the Square Dashboard and resume it."), membershipId: m.id });
+    }
+  }
 }

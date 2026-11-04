@@ -35,6 +35,17 @@ describe("memberships (Square Subscriptions sandbox)", () => {
     expect(await isActiveMember(customerId)).toBe(true);
   });
 
+  it("stays ACTIVE in Square and the first monthly invoice is created", async () => {
+    let sub = await retrieveSubscription(subId);
+    for (let i = 0; i < 12 && !(sub.invoice_ids?.length && sub.charged_through_date); i++) {
+      await new Promise((r) => setTimeout(r, 2500));
+      sub = await retrieveSubscription(subId);
+    }
+    expect(sub.status).toBe("ACTIVE");
+    expect(sub.invoice_ids?.length).toBeGreaterThanOrEqual(1);
+    expect(sub.charged_through_date).toBeTruthy();
+  });
+
   it("refuses a second concurrent membership for the same email", async () => {
     await expect(subscribe({ contact: { name: "Morgan Member", email, phone: "9735550111" }, token: "cnon:card-nonce-ok", idempotencyKey: randomUUID() })).rejects.toMatchObject({ code: "already_member" });
   });
