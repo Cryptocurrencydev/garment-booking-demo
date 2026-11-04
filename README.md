@@ -117,6 +117,8 @@ DATABASE_URL=postgres://localhost/garment_dev npm run dev
 
 Sandbox test card: `4111 1111 1111 1111`, any future expiry, CVV `111`, ZIP `07042`. Use CVV `911` to trigger a decline.
 
+> Square deactivates subscriptions whose customer email is undeliverable (for example `@example.com`), and it does so without creating an invoice. Use a real-looking email when testing memberships.
+
 ## Tests
 
 ```bash

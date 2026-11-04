@@ -7,4 +7,7 @@
 | 2. Typecheck + lint | 11:17 | 11:19 | route typegen; moved autocomplete out of effect |
 | 3. Vitest (Square sandbox live + Uber mock + local PG) | 11:19 | 11:20 | 34/34 pass in 25s; 1 test-query fix |
 | 4. Playwright e2e (390px + 1280px) + fixes | 11:20 | 12:07 | 16/16 pass; fixed membership idempotency-key reuse on card update, expected business errors now 200 ok:false (no browser console errors), email preview no iframe; Square iframe's own mobile CSP notice allow-listed |
-| 5. Deploy (GitHub, Vercel, Neon, webhooks) | 12:07 | | |
+| 5. Deploy (GitHub, Vercel, Neon, webhooks) | 12:07 | 12:21 | gitleaks clean; public repo; vercel link (git-connected); Neon via Marketplace + schema; Square webhook subscription + env vars; Square test event verified 200 |
+| 6. Live verification + fix | 12:21 | 12:36 | Live e2e found Square deactivating subscriptions for @example.com customers (no invoice). Switched test emails to a deliverable domain, added ACTIVE+invoice assertion and owner alert on DEACTIVATED. Live e2e 16/16; real invoice.payment_made webhooks recorded |
+
+**Total: 10:55 → 12:36 (~1h41m)**
