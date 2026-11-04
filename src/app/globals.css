@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #f5f1e8;
+  --color-paper: #fffdf8;
+  --color-ink: #1c2420;
+  --color-muted: #5e6660;
+  --color-faint: #8a908b;
+  --color-line: #e4dccb;
+  --color-forest: #1f3b2d;
+  --color-forest-2: #2c5240;
+  --color-brass: #a8834a;
+  --color-brass-soft: #efe4cf;
+  --color-ok: #2f6b45;
+  --color-warn: #8a5a12;
+  --color-bad: #a3352b;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+}
+
+html {
+  background: var(--color-cream);
+  color: var(--color-ink);
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--color-cream);
+  min-height: 100dvh;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brass);
+  outline-offset: 2px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .fade-in {
+    animation: fade-in 0.25s ease-out both;
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+}
+
+@layer components {
+  .input {
+    @apply block min-h-12 w-full rounded-xl border border-line bg-paper px-4 text-base text-ink placeholder:text-faint focus:border-brass focus:outline-none;
+  }
+  .btn-primary {
+    @apply inline-flex min-h-12 items-center justify-center rounded-full bg-forest px-6 text-[15px] font-medium text-paper transition-colors hover:bg-forest-2 disabled:cursor-not-allowed disabled:bg-faint/50;
+  }
+  .btn-ghost {
+    @apply inline-flex min-h-12 items-center justify-center rounded-full border border-line px-5 text-[15px] text-ink hover:border-brass;
+  }
+  .card {
+    @apply rounded-2xl border border-line bg-paper;
+  }
+}
