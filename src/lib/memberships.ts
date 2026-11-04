@@ -96,7 +96,7 @@ export async function subscribe(input: { contact: { name: string; email: string;
     await sendEmail({ audience: "owner", to: ownerEmail(), subject: `New member: ${input.contact.name} · ${money(MEMBERSHIP.priceCents)}/mo`, text: `New membership for ${input.contact.name} (${email}). Square subscription ${sub.id}.`, html: emailHtml("New membership", [["Member", `${input.contact.name} · ${email} · ${input.contact.phone}`], ["Square subscription", sub.id], ["Status", sub.status]], "A customer just subscribed online.", { label: "Open dashboard", href: `${appUrl()}/admin` }), membershipId: m!.id });
     return { membership: m!, customer: c!, replayed: false };
   } catch (e) {
-    if (e instanceof SquareError) throw new CheckoutError(e.friendly, "payment_failed", 402, { squareCode: e.code });
+    if (e instanceof SquareError) throw new CheckoutError(e.friendly, e.code === "INVALID_PHONE_NUMBER" || e.code === "INVALID_EMAIL_ADDRESS" ? "customer_failed" : "payment_failed", 402, { squareCode: e.code });
     throw e;
   }
 }

@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { MEMBERSHIP, money } from "@/lib/config";
-import { Field, cardName } from "./booking-flow";
+import { Field, PhoneError, cardName, phoneShowsError } from "./booking-flow";
+import { isValidUsPhone } from "@/lib/phone";
 import { SquareCard, type SquareCardHandle } from "./square-card";
 
 type M = { status: string; chargedThrough: string | null; cancelEffective: string | null; startedAt: string } | null;
@@ -81,7 +82,7 @@ export function MembershipClient({ square, me, membership }: { square: { appId: 
     }
   }
 
-  const contactValid = contact.name.trim().length >= 2 && /^\S+@\S+\.\S+$/.test(contact.email) && contact.phone.replace(/\D/g, "").length >= 10;
+  const contactValid = contact.name.trim().length >= 2 && /^\S+@\S+\.\S+$/.test(contact.email) && isValidUsPhone(contact.phone);
 
   return (
     <div className="mt-6 pb-10">
@@ -137,7 +138,8 @@ export function MembershipClient({ square, me, membership }: { square: { appId: 
           <div className="mt-5 space-y-4">
             <Field label="Full name"><input className="input" value={contact.name} onChange={(e) => setContact({ ...contact, name: e.target.value })} autoComplete="name" /></Field>
             <Field label="Email"><input className="input" type="email" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} autoComplete="email" /></Field>
-            <Field label="Mobile"><input className="input" type="tel" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} autoComplete="tel" /></Field>
+            <Field label="Mobile"><input className="input" type="tel" value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} autoComplete="tel" inputMode="tel" aria-invalid={phoneShowsError(contact.phone)} aria-describedby="phone-err" /></Field>
+            <PhoneError phone={contact.phone} />
             <SquareCard ref={cardRef} {...square} />
             <button type="button" className="btn-primary w-full" disabled={busy || !contactValid} onClick={subscribe} data-testid="subscribe-btn">
               {busy ? "Starting membership…" : `Subscribe · ${money(MEMBERSHIP.priceCents)}/month`}

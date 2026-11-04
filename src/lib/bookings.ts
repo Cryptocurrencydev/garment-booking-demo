@@ -185,7 +185,12 @@ export async function checkout(input: CheckoutInput, sessionCustomerId: string |
     if (!c?.square_card_id || !c.square_customer_id) throw new CheckoutError("No saved card on this device. Please enter a card.", "no_saved_card");
     customer = c;
   } else {
-    customer = await upsertCustomer(input.contact, input.idempotencyKey);
+    try {
+      customer = await upsertCustomer(input.contact, input.idempotencyKey);
+    } catch (e) {
+      if (e instanceof SquareError) throw new CheckoutError(e.friendly, "customer_failed", 400, { squareCode: e.code });
+      throw e;
+    }
   }
   const member = await isActiveMember(customer.id);
   const t = totals(serviceCents, q0.fee_cents, member);

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useId, useMemo, useRef, useState } from "react";
 import { MEMBERSHIP, SERVICES, money } from "@/lib/config";
+import { PHONE_HINT, isValidUsPhone } from "@/lib/phone";
 import { SquareCard, type SquareCardHandle } from "./square-card";
 
 type Kind = "pickup" | "delivery";
@@ -79,7 +80,7 @@ export function BookingFlow({ kind, windows, square, me }: { kind: Kind; windows
   const chargedFee = member ? 0 : feeCents;
   const total = serviceCents - discountCents + chargedFee;
 
-  const contactValid = contact.name.trim().length >= 2 && /^\S+@\S+\.\S+$/.test(contact.email.trim()) && contact.phone.replace(/\D/g, "").length >= 10;
+  const contactValid = contact.name.trim().length >= 2 && /^\S+@\S+\.\S+$/.test(contact.email.trim()) && isValidUsPhone(contact.phone);
   const canContinue = [
     Boolean(address && quote && !quoting),
     Boolean(windowStart && quote?.windowStart === windowStart && !quoting),
@@ -251,8 +252,9 @@ export function BookingFlow({ kind, windows, square, me }: { kind: Kind; windows
               <input value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} className="input" type="email" autoComplete="email" inputMode="email" />
             </Field>
             <Field label="Mobile" hint="For courier updates by text.">
-              <input value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} className="input" type="tel" autoComplete="tel" inputMode="tel" placeholder="(973) 555-0100" />
+              <input value={contact.phone} onChange={(e) => setContact({ ...contact, phone: e.target.value })} className="input" type="tel" autoComplete="tel" inputMode="tel" placeholder="(973) 555-0100" aria-invalid={phoneShowsError(contact.phone)} aria-describedby="phone-err" />
             </Field>
+            <PhoneError phone={contact.phone} />
           </div>
         )}
 
@@ -346,6 +348,18 @@ export function BookingFlow({ kind, windows, square, me }: { kind: Kind; windows
       </div>
       <p className="sr-only" aria-live="polite">{quoting ? `Getting Uber ${verb} price` : ""}</p>
     </div>
+  );
+}
+
+export function phoneShowsError(phone: string) {
+  return phone.replace(/\D/g, "").length >= 10 && !isValidUsPhone(phone);
+}
+
+export function PhoneError({ phone }: { phone: string }) {
+  return (
+    <p id="phone-err" role={phoneShowsError(phone) ? "alert" : undefined} className="-mt-2 min-h-0 text-sm text-bad" data-testid="phone-error">
+      {phoneShowsError(phone) ? PHONE_HINT : ""}
+    </p>
   );
 }
 

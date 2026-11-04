@@ -1,5 +1,6 @@
 import { CURRENCY, MEMBERSHIP, STORE } from "./config";
 import { getSetting, setSetting } from "./db";
+import { normalizeUsPhone } from "./phone";
 import { hmacBase64, idemKey, safeEqual } from "./security";
 
 /** Thin Square REST client (sandbox by default). No SDK: every call is explicit and carries an idempotency key. */
@@ -39,6 +40,8 @@ export class SquareError extends Error {
     const c = this.code;
     if (["GENERIC_DECLINE", "CARD_DECLINED", "CVV_FAILURE", "INSUFFICIENT_FUNDS", "CARD_DECLINED_VERIFICATION_REQUIRED", "INVALID_CARD_DATA", "VERIFY_CVV_FAILURE", "VERIFY_AVS_FAILURE"].includes(c))
       return "Your card was declined. Please try another card.";
+    if (c === "INVALID_PHONE_NUMBER") return "Please check your mobile number — it doesn't look like a valid US number.";
+    if (c === "INVALID_EMAIL_ADDRESS") return "Please check your email address.";
     if (c === "ADDRESS_VERIFICATION_FAILURE" || c === "INVALID_POSTAL_CODE") return "The ZIP code didn't match your card.";
     if (c === "INVALID_EXPIRATION" || c === "INVALID_CARD") return "Please check your card details.";
     return "We couldn't process the payment. Please try again.";
@@ -76,26 +79,26 @@ export async function findOrCreateCustomer(input: { email: string; name: string;
   });
   if (found.customers?.[0]) return found.customers[0].id;
   const [given, ...rest] = input.name.trim().split(/\s+/);
-  const created = await sq<{ customer: SqCustomer }>("/v2/customers", {
-    body: {
-      idempotency_key: idemKey(input.idempotencyBase, "customer"),
-      given_name: given,
-      family_name: rest.join(" ") || undefined,
-      email_address: input.email,
-      phone_number: normalizePhone(input.phone) ?? undefined,
-      reference_id: "garment-booking-demo",
-    },
+  const body = (phone: string | undefined, purpose: string) => ({
+    idempotency_key: idemKey(input.idempotencyBase, purpose),
+    given_name: given,
+    family_name: rest.join(" ") || undefined,
+    email_address: input.email,
+    phone_number: phone,
+    reference_id: "garment-booking-demo",
   });
-  return created.customer.id;
+  try {
+    return (await sq<{ customer: SqCustomer }>("/v2/customers", { body: body(normalizePhone(input.phone) ?? undefined, "customer") })).customer.id;
+  } catch (e) {
+    // The phone is contact info, not a payment requirement: never let Square's phone check block checkout.
+    if (e instanceof SquareError && e.code === "INVALID_PHONE_NUMBER") {
+      return (await sq<{ customer: SqCustomer }>("/v2/customers", { body: body(undefined, "customer-no-phone") })).customer.id;
+    }
+    throw e;
+  }
 }
 
-export function normalizePhone(p?: string | null) {
-  if (!p) return null;
-  const d = p.replace(/\D/g, "");
-  if (d.length === 10) return `+1${d}`;
-  if (d.length === 11 && d.startsWith("1")) return `+${d}`;
-  return null;
-}
+export const normalizePhone = normalizeUsPhone;
 
 /** Card on file: store the tokenised card against the Square customer. */
 export async function saveCard(input: { customerId: string; sourceId: string; idempotencyKey: string; cardholderName?: string; postalCode?: string; verificationToken?: string }) {

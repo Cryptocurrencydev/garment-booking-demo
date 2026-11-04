@@ -11,3 +11,4 @@
 | 6. Live verification + fix | 12:21 | 12:36 | Live e2e found Square deactivating subscriptions for @example.com customers (no invoice). Switched test emails to a deliverable domain, added ACTIVE+invoice assertion and owner alert on DEACTIVATED. Live e2e 16/16; real invoice.payment_made webhooks recorded |
 
 **Total: 10:55 → 12:36 (~1h41m)**
+| 7. Live payment bug: repro + fix | 12:42 | 12:51 | Phone 432-098-2220 (exchange starts with 0) passed our 10-digit check, Square /v2/customers rejected INVALID_PHONE_NUMBER before payment → unhandled → 500 'Something went wrong'. Fix: NANP validation on form + API, inline hint, Square customer retried without phone, Square customer errors mapped to friendly messages. Vitest 49/49 |

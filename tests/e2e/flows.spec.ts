@@ -185,3 +185,15 @@ test("webhook endpoints reject unsigned requests", async ({ request }) => {
   const s = await request.post("/api/webhooks/square", { data: { event_id: "x", type: "invoice.payment_made" } });
   expect(s.status()).toBe(401);
 });
+
+test("invalid US phone (432-098-2220, the production failure) is caught on the form with a clear message", async ({ page, errors }) => {
+  void errors;
+  await page.goto("/membership");
+  await page.getByLabel("Full name").fill("Kay Kay");
+  await page.getByLabel("Email").fill("marlowe.finch.demo+phone@gmail.com");
+  await page.getByLabel("Mobile").fill("432-098-2220");
+  await expect(page.getByTestId("phone-error")).toContainText("valid US mobile number");
+  await expect(page.getByTestId("subscribe-btn")).toBeDisabled();
+  await page.getByLabel("Mobile").fill("(973) 555-0142");
+  await expect(page.getByTestId("phone-error")).toBeEmpty();
+});

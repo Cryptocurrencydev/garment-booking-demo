@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { CheckoutError } from "./bookings";
 import { UberError } from "./uber/types";
+import { PHONE_HINT, isValidUsPhone } from "./phone";
 
 export const addressSchema = z.object({
   line1: z.string().min(3).max(200),
@@ -18,12 +19,12 @@ export const addressSchema = z.object({
 export const contactSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().email().max(200),
-  phone: z.string().trim().regex(/^[+()\d\s.-]{10,20}$/, "Enter a valid phone number"),
+  phone: z.string().trim().max(25).refine(isValidUsPhone, PHONE_HINT),
 });
 
 export function jsonError(e: unknown) {
   if (e instanceof z.ZodError) {
-    return NextResponse.json({ error: "Please check the highlighted details.", code: "invalid", issues: e.issues.map((i) => ({ path: i.path.join("."), message: i.message })) }, { status: 400 });
+    return NextResponse.json({ error: e.issues[0]?.message && !e.issues[0].message.startsWith("Invalid") ? e.issues[0].message : "Please check the highlighted details.", code: "invalid", issues: e.issues.map((i) => ({ path: i.path.join("."), message: i.message })) }, { status: 400 });
   }
   if (e instanceof CheckoutError) {
     if (e.extra.squareCode) console.warn(`[square] ${e.code}: ${String(e.extra.squareCode)}`);
